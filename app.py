@@ -42,6 +42,9 @@ with st.form("employee_form"):
     gender = st.selectbox("Gender", GenderEnum)
     slogan = st.text_input("Slogan")
     
+    required_skills = st.text_area("Required Skills (comma separated)")
+    verified_skills = st.text_area("Verified Skills (comma separated)")
+    
     submitted = st.form_submit_button("Submit Profile")
     
     if submitted:
@@ -56,6 +59,14 @@ with st.form("employee_form"):
             errors.append("Designation Name is required.")
         if not contact.strip():
             errors.append("Contact is required.")
+        
+        required_skills_list = [skill.strip() for skill in required_skills.split(",") if skill.strip()]
+        verified_skills_list = [skill.strip() for skill in verified_skills.split(",") if skill.strip()]
+        
+        if not required_skills_list:
+            errors.append("At least one Required Skill is needed.")
+        if not verified_skills_list:
+            errors.append("At least one Verified Skill is needed.")
         
         if errors:
             for error in errors:
@@ -79,6 +90,8 @@ with st.form("employee_form"):
                 "isRadar": is_radar,
                 "gender": gender,
                 "slogan": slogan,
+                "requiredSkills": [get_or_create("skills", "name", skill) for skill in required_skills_list],
+                "verifiedSkills": [get_or_create("skills", "name", skill) for skill in verified_skills_list],
                 "createdAt": datetime.utcnow(),
                 "updatedAt": datetime.utcnow()
             }
