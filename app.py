@@ -6,7 +6,7 @@ from datetime import datetime, date
 MONGO_CONNECTION_STRING = st.secrets["MongoDB"]["MONGO_CONNECTION_STRING"]
 
 client = MongoClient(MONGO_CONNECTION_STRING)
-db = client["your_database_name"]
+db = client["latest_database"]
 collection = db["employees"]
 
 # Enums
