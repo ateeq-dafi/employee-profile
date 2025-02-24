@@ -42,7 +42,7 @@ with st.form("employee_form"):
     gender = st.selectbox("Gender", GenderEnum)
     slogan = st.text_input("Slogan")
     
-    required_skills = st.text_area("Required Skills (comma separated)")
+    required_skills = st.text_area("Skills (comma separated)")
     verified_skills = st.text_area("Verified Skills (comma separated)")
     
     submitted = st.form_submit_button("Submit Profile")
