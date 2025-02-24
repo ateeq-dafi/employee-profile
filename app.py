@@ -1,15 +1,16 @@
 import streamlit as st
 from pymongo import MongoClient
-from datetime import datetime
+from datetime import datetime, date
 
 # Load API key from Streamlit secrets
 MONGO_CONNECTION_STRING = st.secrets["MongoDB"]["MONGO_CONNECTION_STRING"]
 
 client = MongoClient(MONGO_CONNECTION_STRING)
-db = client["employees_database"]
+db = client["your_database_name"]
 collection = db["employees"]
 
 # Enums
+SalaryCurrencyEnum = ["PKR", "USD", "EUR"]
 SalaryTypeEnum = ["Hourly", "Monthly"]
 JobTypeEnum = ["Full Time", "Part Time"]
 GenderEnum = ["Male", "Female", "Other"]
@@ -33,8 +34,8 @@ with st.form("employee_form"):
     max_expected_salary = st.number_input("Max Expected Salary", min_value=0.0)
     about = st.text_area("About")
     salary_type = st.selectbox("Salary Type", SalaryTypeEnum)
-    date_of_birth = st.date_input("Date of Birth")
-    salary_currency = st.text_input("Salary Currency")
+    date_of_birth = st.date_input("Date of Birth", min_value=date(1900, 1, 1), max_value=date.today())
+    salary_currency = st.selectbox("Salary Currency", SalaryCurrencyEnum)
     seeking_job_type = st.selectbox("Seeking Job Type", JobTypeEnum)
     seeking_range = st.number_input("Seeking Range (km)", min_value=0)
     is_radar = st.checkbox("Enable Radar Mode")
