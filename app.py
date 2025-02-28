@@ -20,8 +20,15 @@ JoiningEnum = ["Immediate", "1 Month", "2 Months", "3 Months"]
 def get_location_options():
     """Fetches location options from the 'addresses' collection."""
     addresses_collection = db["addresses"]
-    locations = addresses_collection.find({}, {"_id": 0, "name": 1})  # Project only the name
-    return [location["name"] for location in locations] # Return a list of names
+    try:
+        locations = addresses_collection.find({}, {"_id": 0, "name": 1})  # Project only the name
+        return [location["name"] for location in locations] # Return a list of names
+    except KeyError as e:
+        st.error(f"Error fetching locations: {e}.  Make sure the 'addresses' collection exists and has a 'name' field.")
+        return []  # Return an empty list on error
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
+        return []
 
 def get_or_create_location(location_name):
     """Gets or creates a location in the 'addresses' collection."""
@@ -75,7 +82,7 @@ with st.form("employee_form"):
 
     is_verified = st.checkbox("Is Verified")
 
-    submitted = st.form_submit_button("Submit Profile")
+    submitted = st.form_submit_button("Submit Profile") # ADDED SUBMIT BUTTON
 
     if submitted:
         errors = []
@@ -140,7 +147,7 @@ with st.form("employee_form"):
                 "lastDegree": last_degree,
                 "certifications": [get_or_create("certifications", "name", cert) for cert in certifications_list],
                 "joining": joining,
-                "industryId": final_location,  # Store the location ID
+                "addressId": final_location,  # Store the location ID
                 "isVerified": is_verified,
             }
             collection.insert_one(employee_data)
