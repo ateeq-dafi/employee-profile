@@ -16,28 +16,14 @@ JobTypeEnum = ["Full Time", "Part Time"]
 GenderEnum = ["Male", "Female", "Other"]
 JoiningEnum = ["Immediate", "1 Month", "2 Months", "3 Months"]
 
-# Location Enum (Now a single field, handled with a function)
-def get_location_options():
-    """Fetches location options from the 'addresses' collection."""
-    addresses_collection = db["addresses"]
-    try:
-        locations = addresses_collection.find({}, {"_id": 0, "name": 1})  # Project only the name
-        return [location["name"] for location in locations] # Return a list of names
-    except KeyError as e:
-        st.error(f"Error fetching locations: {e}.  Make sure the 'addresses' collection exists and has a 'name' field.")
-        return []  # Return an empty list on error
-    except Exception as e:
-        st.error(f"An unexpected error occurred: {e}")
-        return []
-
 def get_or_create_location(location_name):
     """Gets or creates a location in the 'addresses' collection."""
     addresses_collection = db["addresses"]
     existing = addresses_collection.find_one({"name": location_name})
     return existing["_id"] if existing else addresses_collection.insert_one({"name": location_name}).inserted_id
 
-
 def get_or_create(collection_name, field_name, value):
+    """Gets or creates a document in a collection."""
     collection = db[collection_name]
     existing = collection.find_one({field_name: value})
     return existing["_id"] if existing else collection.insert_one({field_name: value}).inserted_id
@@ -72,17 +58,10 @@ with st.form("employee_form"):
     last_degree = st.text_input("Last Degree")
     certifications = st.text_area("Certifications (comma separated)")
     joining = st.selectbox("Joining", JoiningEnum)
-    # Location (Single Field)
-    location_options = get_location_options()
-    location = st.selectbox("Location", [""] + location_options, index=0)  # Add an empty option at the beginning
-
-    # Allow adding a new location
-    add_new_location = st.checkbox("Add New Location")
-    new_location = st.text_input("New Location Name", disabled=not add_new_location)
-
+    location_name = st.text_input("Location") # Changed to text_input
     is_verified = st.checkbox("Is Verified")
 
-    submitted = st.form_submit_button("Submit Profile") # ADDED SUBMIT BUTTON
+    submitted = st.form_submit_button("Submit Profile")
 
     if submitted:
         errors = []
@@ -96,8 +75,8 @@ with st.form("employee_form"):
             errors.append("Designation Name is required.")
         if not contact.strip():
             errors.append("Contact is required.")
-        if not location and not (add_new_location and new_location.strip()):
-          errors.append("Location is required.")
+        if not location_name.strip():  # Check for empty location
+            errors.append("Location is required.")
 
 
         required_skills_list = [skill.strip() for skill in required_skills.split(",") if skill.strip()]
@@ -114,12 +93,8 @@ with st.form("employee_form"):
             for error in errors:
                 st.error(error)
         else:
-            # Determine the final location to store
-            final_location = None
-            if add_new_location and new_location.strip():
-                final_location = get_or_create_location(new_location.strip())  # Use the new function
-            elif location:
-                final_location = get_or_create_location(location)
+            # Create or get the location ID
+            final_location = get_or_create_location(location_name.strip())
 
             employee_data = {
                 "firstName": first_name,
@@ -147,9 +122,8 @@ with st.form("employee_form"):
                 "lastDegree": last_degree,
                 "certifications": [get_or_create("certifications", "name", cert) for cert in certifications_list],
                 "joining": joining,
-                "addressId": final_location,  # Store the location ID
+                "addressId": final_location,
                 "isVerified": is_verified,
             }
             collection.insert_one(employee_data)
             st.success("Profile submitted successfully!")
-            st.experimental_rerun() # Rerun to refresh the location list
