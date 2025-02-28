@@ -14,6 +14,16 @@ SalaryCurrencyEnum = ["PKR", "USD", "EUR"]
 SalaryTypeEnum = ["Hourly", "Monthly"]
 JobTypeEnum = ["Full Time", "Part Time"]
 GenderEnum = ["Male", "Female", "Other"]
+JoiningEnum = ["Immediate", "1 Month", "2 Months", "3 Months"]
+LocationEnum = [  # expanded this enum.  It's better practice to have a separate collection
+    "City, State, Country", # Placeholder
+    "Karachi, Sindh, Pakistan",
+    "Lahore, Punjab, Pakistan",
+    "Islamabad, ICT, Pakistan",
+    "New York, NY, USA",
+    "London, England, UK",  # Example locations.  This will get VERY long.
+    # ... Add many more locations here, or ideally use a locations collection
+]
 
 def get_or_create(collection_name, field_name, value):
     collection = db[collection_name]
@@ -41,12 +51,22 @@ with st.form("employee_form"):
     is_radar = st.checkbox("Enable Radar Mode")
     gender = st.selectbox("Gender", GenderEnum)
     slogan = st.text_input("Slogan")
-    
+
     required_skills = st.text_area("Skills (comma separated)")
     verified_skills = st.text_area("Verified Skills (comma separated)")
-    
+
+    # New Fields
+    years_of_experience = st.number_input("Years of Experience", min_value=0.0, step=0.5)  # Step allows for half-years
+    last_degree = st.text_input("Last Degree")
+    certifications = st.text_area("Certifications (comma separated)")  # No enum for this; use a list
+    joining = st.selectbox("Joining", JoiningEnum)
+    location = st.selectbox("Location", LocationEnum)
+    is_verified = st.checkbox("Is Verified")
+
+
+
     submitted = st.form_submit_button("Submit Profile")
-    
+
     if submitted:
         errors = []
         if not first_name.strip():
@@ -59,15 +79,18 @@ with st.form("employee_form"):
             errors.append("Designation Name is required.")
         if not contact.strip():
             errors.append("Contact is required.")
-        
+
         required_skills_list = [skill.strip() for skill in required_skills.split(",") if skill.strip()]
         verified_skills_list = [skill.strip() for skill in verified_skills.split(",") if skill.strip()]
-        
+        certifications_list = [cert.strip() for cert in certifications.split(",") if cert.strip()]  # Process certifications
+
         if not required_skills_list:
             errors.append("At least one Required Skill is needed.")
         if not verified_skills_list:
             errors.append("At least one Verified Skill is needed.")
         
+        # No need for a separate Location Enum; we can store the selected string directly.
+
         if errors:
             for error in errors:
                 st.error(error)
@@ -93,7 +116,13 @@ with st.form("employee_form"):
                 "requiredSkills": [get_or_create("skills", "name", skill) for skill in required_skills_list],
                 "verifiedSkills": [get_or_create("skills", "name", skill) for skill in verified_skills_list],
                 "createdAt": datetime.utcnow(),
-                "updatedAt": datetime.utcnow()
+                "updatedAt": datetime.utcnow(),
+                "yearsOfExperience": years_of_experience,
+                "lastDegree": last_degree,
+                "certifications": [get_or_create("certifications", "name", cert) for cert in certifications_list],  # Store certification IDs
+                "joining": joining,
+                "location": location,  # Store location string
+                "isVerified": is_verified,
             }
             collection.insert_one(employee_data)
             st.success("Profile submitted successfully!")
