@@ -12,7 +12,7 @@ collection = db["employees"]
 # Enums
 SalaryCurrencyEnum = ["PKR", "USD", "EUR"]
 SalaryTypeEnum = ["Hourly", "Monthly"]
-JobTypeEnum = ["Full-time", "Part-time", "Contract"]
+JobTypeEnum = ["Full-Time", "Part-Time", "Contract"]
 GenderEnum = ["Male", "Female", "Other"]
 JoiningEnum = ["Immediate", "1 Month", "2 Months", "3 Months"]
 
